@@ -1,0 +1,7 @@
+.venv
+.vscode
+*.swp
+__pycache__
+llm-logs
+questions.md
+prompt.md
