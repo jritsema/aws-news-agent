@@ -6,7 +6,7 @@ from bedrock_tools import BedrockTools
 import tools
 
 bedrock = boto3.client("bedrock-runtime")
-model_id = "us.anthropic.claude-3-haiku-20240307-v1:0"
+model_id = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
 # The maximum number of recursive calls allowed
 # This helps prevent infinite loops and potential performance issues.
@@ -20,15 +20,16 @@ logging.basicConfig(level=logging.WARNING)
 
 # initialize Bedrock tools
 tool_manager = BedrockTools()
-tool_manager.add_function(tools.get_current_date_time)
 tool_manager.add_function(tools.get_aws_news_articles)
-tool_manager.add_function(tools.lookup_aws_news_article_details)
+tool_manager.add_function(tools.fetch_webpage)
 info(tool_manager.get_tool_config())
 
 system_prompt = """
-You are an AWS news assistant. You help your users understand what new
-services and features that AWS is launching. Be sure to include dates
-when sharing news.
+You are a very helpful AWS news assistant. You help your users understand new
+services and features that AWS has launched. Be sure to include dates
+when sharing news. Use the fetch webpage tool to retrieve the contents
+of any web page. If asked a question about a particular feature,
+always search the recent announcements for the particular aws service first.
 """
 
 
@@ -68,6 +69,7 @@ def handle_tool_use(model_response, messages, max_recursion=5):
 
         # invoke the tool and add it to the list of results
         if "toolUse" in content_block:
+            logging.info(f"TOOL USE: {content_block['toolUse']}")
             tool_response = tool_manager.invoke(content_block["toolUse"])
             tool_results.append(tool_response)
 
@@ -106,15 +108,19 @@ def handle_tool_use(model_response, messages, max_recursion=5):
 
 
 def get_user_input():
-    user_input = input("AWS News Assistant (x to exit):  ")
+    print("######################")
+    print("# AWS News Assistant #")
+    print("# (type 'x' to exit) #")
+    print("######################")
+    print()
+    user_input = input("$ ")
     if user_input.lower() == "x":
         return None
     return user_input
 
-
 def main():
 
-    # Start with an emtpy conversation
+    # Start with an empty conversation
     messages = []
 
     # Get the first user input
