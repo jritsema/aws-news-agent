@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.WARNING)
 
 # initialize Bedrock tools
 tool_manager = BedrockTools()
+tool_manager.add_function(tools.get_current_date_time)
 tool_manager.add_function(tools.get_aws_news_articles)
 tool_manager.add_function(tools.fetch_webpage)
 info(tool_manager.get_tool_config())
@@ -30,6 +31,8 @@ services and features that AWS has launched. Be sure to include dates
 when sharing news. Use the fetch webpage tool to retrieve the contents
 of any web page. If asked a question about a particular feature,
 always search the recent announcements for the particular aws service first.
+Use the `get_current_date_time` tool if asked about news within a specified
+time period.
 """
 
 
