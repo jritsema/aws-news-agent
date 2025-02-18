@@ -3,23 +3,28 @@ import requests
 from html2text import HTML2Text
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import logging
 
 
 def get_current_date_time() -> str:
     """
-    Returns the current date and time in the format "YYYY-MM-DD HH:MM:SS".
+    Returns:
+        str: the current date and time in ISO 8601 format: "2025-02-18T16:55:07.824462+00:00".
     """
-    now = datetime.datetime.now()
-    return now.strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.datetime.now().isoformat()
 
 
-def get_aws_news_articles(topic: str) -> list:
+def get_aws_news_articles(topic: str, since: str) -> list:
     """
     Returns a list of AWS news articles with announcements
     of new products, services, and capabilities for the specified aws topic/service.
+    Optionally, specify a "since" date in ISO 8601 format by which to filter the results.
 
-    For example: If asked for the "latest bedrock announcements", you would call
-    `get_aws_news_articles("load balancer")`
+    For example: If asked for "bedrock announcements", you would call
+    `get_aws_news_articles("bedrock", "")`
+
+    If asked for "bedrock announcements since 2025-01-18T16:55:07.824462+00:00", you would call
+    `get_aws_news_articles("bedrock", "2025-01-18T16:55:07.824462+00:00")`
 
     This tool returns data in the following format:
     [
@@ -48,24 +53,39 @@ def get_aws_news_articles(topic: str) -> list:
             "main_category": null
         }
     ]
+
+    Args:
+        topic (str): The topic you want to search for. Typically the name of an AWS service.
+        since (str): The since date in ISO 8601 format.
+
+    Returns:
+        list: A list of news objects that include a title, url, and date.
     """
+
+    print()
+    print(f"Reading AWS News for {topic}")
+    print()
 
     page_size = 40
     url = f"https://api.aws-news.com/articles?page_size={page_size}&article_type=news&search={
         topic}"
     response = requests.get(url)
     data = response.json()
+
+    # filter results if since is specified
+    if since != "":
+        since = datetime.datetime.fromisoformat(
+            since).astimezone(datetime.timezone.utc)
+        filtered_articles = []
+        for article in data["articles"]:
+            published = datetime.datetime.fromisoformat(
+                article["published_date"]).astimezone(datetime.timezone.utc)
+            if published > since:
+                filtered_articles.append(article)
+        data["articles"] = filtered_articles
+
     return data["articles"]
 
-
-# def lookup_aws_news_article_details(url: str) -> str:
-#     """
-#     Fetches the details of an AWS news article from the specified url.
-
-#     Returns the article HTML
-#     """
-#     response = requests.get(url)
-#     return response.text
 
 def fetch_webpage(url: str) -> str:
     """

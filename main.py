@@ -1,12 +1,21 @@
+import time
 import logging
 from log import debug, info, warn, error
 from log import llm as log_llm
 import boto3
+from botocore.config import Config
 from bedrock_tools import BedrockTools
 import tools
 
-bedrock = boto3.client("bedrock-runtime")
-model_id = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+config = Config(
+    retries=dict(
+        max_attempts=10,
+        mode='adaptive'
+    )
+)
+bedrock = boto3.client("bedrock-runtime", config=config)
+
+model_id = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
 
 # The maximum number of recursive calls allowed
 # This helps prevent infinite loops and potential performance issues.
@@ -31,8 +40,10 @@ services and features that AWS has launched. Be sure to include dates
 when sharing news. Use the fetch webpage tool to retrieve the contents
 of any web page. If asked a question about a particular feature,
 always search the recent announcements for the particular aws service first.
-Use the `get_current_date_time` tool if asked about news within a specified
-time period.
+If asked about news within a specified time period (e.g. 30 days),
+use the `get_current_date_time` tool to get the current date and compare
+the news timestamps. Be sure to use the current date and only return news
+that occurred within that time period.
 """
 
 
@@ -121,6 +132,7 @@ def get_user_input():
         return None
     return user_input
 
+
 def main():
 
     # Start with an empty conversation
@@ -128,6 +140,7 @@ def main():
 
     # Get the first user input
     user_input = get_user_input()
+    print()
 
     # repl loop
     while user_input is not None:
