@@ -96,24 +96,16 @@ def handle_tool_use(model_response, messages, max_recursion=5):
     request = {
         "modelId": model_id,
         "messages": messages,
+        "system": [{"text": system_prompt}],
         "inferenceConfig": {
             "temperature": TEMPERATURE,
             "topP": TOP_P,
         },
+        "toolConfig": tool_manager.get_tool_config(),
     }
 
     # Send the conversation to Amazon Bedrock
-    response = bedrock.converse(
-        modelId=model_id,
-        messages=messages,
-        system=[{"text": system_prompt}],
-        inferenceConfig={
-            "temperature": TEMPERATURE,
-            "topP": TOP_P,
-        },
-        toolConfig=tool_manager.get_tool_config(),
-    )
-
+    response = bedrock.converse(**request)
     log_llm(request, response)
 
     # Recursively handle the model's response until the model has returned
@@ -152,24 +144,16 @@ def main():
         request = {
             "modelId": model_id,
             "messages": messages,
+            "system": [{"text": system_prompt}],
             "inferenceConfig": {
                 "temperature": TEMPERATURE,
                 "topP": TOP_P,
             },
+            "toolConfig": tool_manager.get_tool_config(),
         }
 
         # Send the conversation to Amazon Bedrock
-        response = bedrock.converse(
-            modelId=model_id,
-            messages=messages,
-            system=[{"text": system_prompt}],
-            inferenceConfig={
-                "temperature": TEMPERATURE,
-                "topP": TOP_P,
-            },
-            toolConfig=tool_manager.get_tool_config(),
-        )
-
+        response = bedrock.converse(**request)
         log_llm(request, response)
 
         # agentic loop
@@ -180,6 +164,7 @@ def main():
 
         # Repeat the repl loop until the user decides to exit the application
         user_input = get_user_input()
+        print()
 
 
 if __name__ == "__main__":
