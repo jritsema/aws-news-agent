@@ -1,5 +1,0 @@
-boto3
-bedrock-tools
-requests
-beautifulsoup4
-html2text

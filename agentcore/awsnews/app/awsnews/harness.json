@@ -1,0 +1,22 @@
+{
+  "name": "awsnews",
+  "model": {
+    "provider": "bedrock",
+    "modelId": "openai.gpt-5.5",
+    "apiFormat": "responses"
+  },
+  "tools": [],
+  "skills": [
+    {
+      "s3Uri": "s3://awsnews-skills-636439685787-us-east-1/skills/aws-news/"
+    },
+    {
+      "gitUrl": "https://github.com/anthropics/skills",
+      "path": "skills/pptx"
+    }
+  ],
+  "maxIterations": 50,
+  "memory": {
+    "mode": "managed"
+  }
+}
